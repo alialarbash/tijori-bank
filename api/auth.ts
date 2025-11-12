@@ -1,7 +1,7 @@
 import UserInfo from "../types/UserInfo";
 import instance from ".";
 
-const login = async (userInfo: UserInfo) => {
+const loginApi = async (userInfo: UserInfo) => {
   const { data } = await instance.post(
     "/mini-project/api/auth/login",
     userInfo
@@ -9,7 +9,7 @@ const login = async (userInfo: UserInfo) => {
   return data;
 };
 
-const register = async (userInfo: UserInfo, image: string) => {
+const registerApi = async (userInfo: UserInfo, image: string) => {
   const formData = new FormData();
   formData.append("username", userInfo.username);
   formData.append("password", userInfo.password);
@@ -53,4 +53,4 @@ const updateUser = async (image: string) => {
   return data;
 };
 
-export { login, register, me, getAllUsers, getUserById, updateUser };
+export { loginApi, registerApi, me, getAllUsers, getUserById, updateUser };

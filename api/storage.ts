@@ -24,4 +24,22 @@ const deleteToken = async () => {
   }
 };
 
-export { storeToken, getToken, deleteToken };
+const getRememberMe = async () => {
+  try {
+    const value = await AsyncStorage.getItem("rememberMe");
+    return value === "true";
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+const setRememberMe = async (value: boolean) => {
+  try {
+    await AsyncStorage.setItem("rememberMe", value.toString());
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export { storeToken, getToken, deleteToken, getRememberMe, setRememberMe };
