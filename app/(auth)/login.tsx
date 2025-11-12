@@ -337,7 +337,6 @@ const login = () => {
                     }}
                     onBlur={formik.handleBlur("username")}
                     autoCapitalize="none"
-                    keyboardType="email-address"
                   />
                 </View>
 
