@@ -6,7 +6,7 @@ const TabLayout = () => {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
       }}
     >
       <Stack.Screen

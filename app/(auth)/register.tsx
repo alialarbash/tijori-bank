@@ -7,6 +7,8 @@ import {
   Image,
   Animated,
   ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import React, { useContext, useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -337,213 +339,220 @@ const register = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Hero Image Section */}
-      <View style={styles.heroSection}>
-        <Image
-          source={{
-            uri: "https://images.unsplash.com/photo-1650728670975-062f36a97c1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxLdXdhaXQlMjBoZXJpdGFnZSUyMGJ1aWxkaW5nfGVufDF8fHx8MTc2Mjc4NDI4NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-          }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
-        <View style={styles.heroOverlay} />
-      </View>
-
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <SmallVaultIcon />
-          <Text style={styles.logoText}>Tijori</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        {/* Hero Image Section */}
+        <View style={styles.heroSection}>
+          <Image
+            source={{
+              uri: "https://images.unsplash.com/photo-1650728670975-062f36a97c1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxLdXdhaXQlMjBoZXJpdGFnZSUyMGJ1aWxkaW5nfGVufDF8fHx8MTc2Mjc4NDI4NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+            }}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+          <View style={styles.heroOverlay} />
         </View>
-      </View>
 
-      {/* Card Container */}
-      <View style={styles.cardWrapper}>
-        <Animated.View
-          style={[
-            styles.cardContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          <View style={styles.card}>
-            {/* Profile Image Upload */}
-            <View style={styles.profileImageContainer}>
-              <Animated.View
-                style={[
-                  styles.profileImageWrapper,
-                  { transform: [{ scale: imageScaleAnim }] },
-                ]}
-              >
-                <TouchableOpacity
-                  onPress={handleImagePress}
-                  style={styles.profileImageTouchable}
-                  activeOpacity={0.8}
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <SmallVaultIcon />
+            <Text style={styles.logoText}>Tijori</Text>
+          </View>
+        </View>
+
+        {/* Card Container */}
+        <View style={styles.cardWrapper}>
+          <Animated.View
+            style={[
+              styles.cardContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <View style={styles.card}>
+              {/* Profile Image Upload */}
+              <View style={styles.profileImageContainer}>
+                <Animated.View
+                  style={[
+                    styles.profileImageWrapper,
+                    { transform: [{ scale: imageScaleAnim }] },
+                  ]}
                 >
-                  {image ? (
-                    <Image
-                      source={{ uri: image }}
-                      style={styles.profileImage}
-                    />
-                  ) : (
-                    <View style={styles.profileImagePlaceholder}>
-                      <CameraIcon size={32} />
+                  <TouchableOpacity
+                    onPress={handleImagePress}
+                    style={styles.profileImageTouchable}
+                    activeOpacity={0.8}
+                  >
+                    {image ? (
+                      <Image
+                        source={{ uri: image }}
+                        style={styles.profileImage}
+                      />
+                    ) : (
+                      <View style={styles.profileImagePlaceholder}>
+                        <CameraIcon size={32} />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <View style={styles.plusIconOverlay}>
+                    <View style={styles.plusIconContainer}>
+                      <PlusIcon size={14} />
                     </View>
-                  )}
-                </TouchableOpacity>
-                <View style={styles.plusIconOverlay}>
-                  <View style={styles.plusIconContainer}>
-                    <PlusIcon size={14} />
+                  </View>
+                </Animated.View>
+              </View>
+
+              {/* Welcome Text */}
+              <Text style={styles.welcomeText}>Create Your Tijori</Text>
+
+              {/* Error Message */}
+              {errorMessage ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              {/* Form */}
+              <View style={styles.form}>
+                {/* Username Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Username</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      formik.touched.username &&
+                        formik.errors.username &&
+                        styles.inputError,
+                      formik.values.username && styles.inputFocused,
+                    ]}
+                    placeholder="Choose a username"
+                    placeholderTextColor="#C9B99A80"
+                    value={formik.values.username}
+                    onChangeText={(text) => {
+                      formik.setFieldValue("username", text);
+                      setErrorMessage("");
+                    }}
+                    onBlur={formik.handleBlur("username")}
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                {/* Password Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Password</Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        styles.passwordInput,
+                        formik.touched.password &&
+                          formik.errors.password &&
+                          styles.inputError,
+                        formik.values.password && styles.inputFocused,
+                      ]}
+                      placeholder="Create a strong password"
+                      placeholderTextColor="#C9B99A80"
+                      value={formik.values.password}
+                      onChangeText={(text) => {
+                        formik.setFieldValue("password", text);
+                        setErrorMessage("");
+                      }}
+                      onBlur={formik.handleBlur("password")}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeButtonContainer}
+                      activeOpacity={0.7}
+                    >
+                      <EyeIcon visible={showPassword} />
+                    </TouchableOpacity>
                   </View>
                 </View>
-              </Animated.View>
-            </View>
 
-            {/* Welcome Text */}
-            <Text style={styles.welcomeText}>Create Your Tijori</Text>
-
-            {/* Error Message */}
-            {errorMessage ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </View>
-            ) : null}
-
-            {/* Form */}
-            <View style={styles.form}>
-              {/* Username Input */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Username</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    formik.touched.username &&
-                      formik.errors.username &&
-                      styles.inputError,
-                    formik.values.username && styles.inputFocused,
-                  ]}
-                  placeholder="Choose a username"
-                  placeholderTextColor="#C9B99A80"
-                  value={formik.values.username}
-                  onChangeText={(text) => {
-                    formik.setFieldValue("username", text);
-                    setErrorMessage("");
-                  }}
-                  onBlur={formik.handleBlur("username")}
-                  autoCapitalize="none"
-                />
-              </View>
-
-              {/* Password Input */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Password</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      styles.passwordInput,
-                      formik.touched.password &&
-                        formik.errors.password &&
-                        styles.inputError,
-                      formik.values.password && styles.inputFocused,
-                    ]}
-                    placeholder="Create a strong password"
-                    placeholderTextColor="#C9B99A80"
-                    value={formik.values.password}
-                    onChangeText={(text) => {
-                      formik.setFieldValue("password", text);
-                      setErrorMessage("");
-                    }}
-                    onBlur={formik.handleBlur("password")}
-                    secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeButtonContainer}
-                    activeOpacity={0.7}
-                  >
-                    <EyeIcon visible={showPassword} />
-                  </TouchableOpacity>
+                {/* Confirm Password Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Confirm Password</Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        styles.passwordInput,
+                        formik.touched.confirmPassword &&
+                          formik.errors.confirmPassword &&
+                          styles.inputError,
+                        formik.values.confirmPassword && styles.inputFocused,
+                      ]}
+                      placeholder="Re-enter your password"
+                      placeholderTextColor="#C9B99A80"
+                      value={formik.values.confirmPassword}
+                      onChangeText={(text) => {
+                        formik.setFieldValue("confirmPassword", text);
+                        setErrorMessage("");
+                      }}
+                      onBlur={formik.handleBlur("confirmPassword")}
+                      secureTextEntry={!showConfirmPassword}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity
+                      onPress={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      style={styles.eyeButtonContainer}
+                      activeOpacity={0.7}
+                    >
+                      <EyeIcon visible={showConfirmPassword} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
 
-              {/* Confirm Password Input */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Confirm Password</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      styles.passwordInput,
-                      formik.touched.confirmPassword &&
-                        formik.errors.confirmPassword &&
-                        styles.inputError,
-                      formik.values.confirmPassword && styles.inputFocused,
-                    ]}
-                    placeholder="Re-enter your password"
-                    placeholderTextColor="#C9B99A80"
-                    value={formik.values.confirmPassword}
-                    onChangeText={(text) => {
-                      formik.setFieldValue("confirmPassword", text);
-                      setErrorMessage("");
-                    }}
-                    onBlur={formik.handleBlur("confirmPassword")}
-                    secureTextEntry={!showConfirmPassword}
-                    autoCapitalize="none"
-                  />
+                {/* Create Account Button */}
+                <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                   <TouchableOpacity
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={styles.eyeButtonContainer}
-                    activeOpacity={0.7}
+                    style={[
+                      styles.createAccountButton,
+                      isPending && styles.createAccountButtonDisabled,
+                    ]}
+                    onPress={handleSubmit}
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    disabled={isPending}
                   >
-                    <EyeIcon visible={showConfirmPassword} />
+                    {isPending ? (
+                      <ActivityIndicator color="#0C1A26" />
+                    ) : (
+                      <Text style={styles.createAccountButtonText}>
+                        Create Account
+                      </Text>
+                    )}
                   </TouchableOpacity>
-                </View>
+                </Animated.View>
               </View>
-
-              {/* Create Account Button */}
-              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                <TouchableOpacity
-                  style={[
-                    styles.createAccountButton,
-                    isPending && styles.createAccountButtonDisabled,
-                  ]}
-                  onPress={handleSubmit}
-                  onPressIn={handlePressIn}
-                  onPressOut={handlePressOut}
-                  disabled={isPending}
-                >
-                  {isPending ? (
-                    <ActivityIndicator color="#0C1A26" />
-                  ) : (
-                    <Text style={styles.createAccountButtonText}>
-                      Create Account
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
             </View>
-          </View>
-        </Animated.View>
-      </View>
+          </Animated.View>
+        </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Already have an account?{" "}
-          <Text style={styles.footerLink} onPress={() => router.push("/login")}>
-            Sign In
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Already have an account?{" "}
+            <Text
+              style={styles.footerLink}
+              onPress={() => router.push("/login")}
+            >
+              Sign In
+            </Text>
           </Text>
-        </Text>
-        <Text style={styles.securityText}>
-          Your information is safe inside your Tijori
-        </Text>
+          <Text style={styles.securityText}>
+            Your information is safe inside your Tijori
+          </Text>
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 

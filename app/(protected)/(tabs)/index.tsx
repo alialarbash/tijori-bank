@@ -8,7 +8,7 @@ import {
   Animated,
   ActivityIndicator,
 } from "react-native";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { me } from "../../../api/auth";
 import {
@@ -167,6 +167,111 @@ const XIcon = () => (
   </Svg>
 );
 
+// Skeleton Loader Components
+const SkeletonLoader = ({
+  width,
+  height,
+  style,
+}: {
+  width?: number | string;
+  height?: number;
+  style?: any;
+}) => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width: width || "100%",
+          height: height || 20,
+          backgroundColor: "#D8A75F33",
+          borderRadius: 8,
+          opacity,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
+const SkeletonHeader = () => (
+  <View style={styles.header}>
+    <View>
+      <SkeletonLoader width={120} height={14} style={{ marginBottom: 8 }} />
+      <SkeletonLoader width={150} height={24} />
+    </View>
+    <SkeletonLoader width={40} height={40} style={{ borderRadius: 20 }} />
+  </View>
+);
+
+const SkeletonBalanceCard = () => (
+  <View style={styles.balanceCard}>
+    <View style={styles.cornerDecorationContainer}>
+      <CornerDecoration />
+    </View>
+    <View style={styles.balanceHeader}>
+      <SkeletonLoader width={100} height={14} />
+    </View>
+    <View style={styles.balanceRow}>
+      <SkeletonLoader width={180} height={40} style={{ marginRight: 12 }} />
+      <SkeletonLoader width={50} height={28} style={{ borderRadius: 8 }} />
+    </View>
+    <View style={{ marginTop: 12 }}>
+      <SkeletonLoader width={120} height={14} />
+    </View>
+  </View>
+);
+
+const SkeletonActionButtons = () => (
+  <View style={styles.actionButtonsContainer}>
+    <SkeletonLoader width="48%" height={52} style={{ borderRadius: 14 }} />
+    <SkeletonLoader width="48%" height={52} style={{ borderRadius: 14 }} />
+  </View>
+);
+
+const SkeletonTransactionItem = () => (
+  <View style={styles.transactionItem}>
+    <SkeletonLoader width={40} height={40} style={{ borderRadius: 20 }} />
+    <View style={styles.transactionDetails}>
+      <SkeletonLoader width={100} height={16} style={{ marginBottom: 8 }} />
+      <SkeletonLoader width={80} height={12} />
+    </View>
+    <SkeletonLoader width={80} height={16} />
+  </View>
+);
+
+const SkeletonRecentActivity = () => (
+  <View style={styles.recentActivityContainer}>
+    <SkeletonLoader width={140} height={20} style={{ marginBottom: 16 }} />
+    <SkeletonTransactionItem />
+    <SkeletonTransactionItem />
+    <SkeletonTransactionItem />
+  </View>
+);
+
 const index = () => {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState<string>("");
@@ -176,15 +281,17 @@ const index = () => {
   const slideAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ["user"],
     queryFn: me,
   });
 
-  const { data: transactions } = useQuery({
+  const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
     queryKey: ["transactions"],
     queryFn: getTransactions,
   });
+
+  const isLoading = isLoadingUser || isLoadingTransactions;
 
   // Get last 3 transactions (newest first)
   const recentTransactions = transactions
@@ -374,74 +481,89 @@ const index = () => {
       contentContainerStyle={styles.contentContainer}
     >
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.usernameText}>{user?.username || "User"}</Text>
+      {isLoading ? (
+        <SkeletonHeader />
+      ) : (
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.welcomeText}>Welcome back,</Text>
+            <Text style={styles.usernameText}>{user?.username || "User"}</Text>
+          </View>
+          <TouchableOpacity style={styles.profileIcon}>
+            <SmallVaultIcon />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.profileIcon}>
-          <SmallVaultIcon />
-        </TouchableOpacity>
-      </View>
+      )}
 
       <Animated.View
         style={[
           styles.balanceContainer,
           {
-            opacity: fadeAnim,
+            opacity: isLoading ? 1 : fadeAnim,
             transform: [
               {
-                translateY: slideAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0],
-                }),
+                translateY: isLoading
+                  ? 0
+                  : slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
               },
             ],
           },
         ]}
       >
         {/* Total Balance Card */}
-        <View style={styles.balanceCard}>
-          <View style={styles.cornerDecorationContainer}>
-            <CornerDecoration />
-          </View>
-          <View style={styles.balanceHeader}>
-            <Text style={styles.balanceLabel}>Total Balance</Text>
-          </View>
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceAmount}>
-              {formatAmount(user?.balance || 0)}
-            </Text>
-            <View style={styles.currencyCapsule}>
-              <Text style={styles.currencyText}>KWD</Text>
+        {isLoading ? (
+          <SkeletonBalanceCard />
+        ) : (
+          <View style={styles.balanceCard}>
+            {(isDepositing || isWithdrawing) && (
+              <View style={styles.balanceLoadingOverlay}>
+                <ActivityIndicator size="large" color="#D8A75F" />
+              </View>
+            )}
+            <View style={styles.cornerDecorationContainer}>
+              <CornerDecoration />
             </View>
-          </View>
-          {hasChange && (
-            <View style={styles.percentageContainer}>
-              <Text
-                style={[
-                  styles.percentageText,
-                  percentageChange > 0
-                    ? styles.percentagePositive
-                    : styles.percentageNegative,
-                ]}
-              >
-                {percentageChange > 0 ? "+" : ""}
-                {percentageChange.toFixed(1)}% this month
-              </Text>
-              <Text
-                style={[
-                  styles.percentageArrow,
-                  percentageChange > 0
-                    ? styles.percentagePositive
-                    : styles.percentageNegative,
-                ]}
-              >
-                {percentageChange > 0 ? "↑" : "↓"}
-              </Text>
+            <View style={styles.balanceHeader}>
+              <Text style={styles.balanceLabel}>Total Balance</Text>
             </View>
-          )}
-        </View>
+            <View style={styles.balanceRow}>
+              <Text style={styles.balanceAmount}>
+                {formatAmount(user?.balance || 0)}
+              </Text>
+              <View style={styles.currencyCapsule}>
+                <Text style={styles.currencyText}>KWD</Text>
+              </View>
+            </View>
+            {hasChange && (
+              <View style={styles.percentageContainer}>
+                <Text
+                  style={[
+                    styles.percentageText,
+                    percentageChange > 0
+                      ? styles.percentagePositive
+                      : styles.percentageNegative,
+                  ]}
+                >
+                  {percentageChange > 0 ? "+" : ""}
+                  {percentageChange.toFixed(1)}% this month
+                </Text>
+                <Text
+                  style={[
+                    styles.percentageArrow,
+                    percentageChange > 0
+                      ? styles.percentagePositive
+                      : styles.percentageNegative,
+                  ]}
+                >
+                  {percentageChange > 0 ? "↑" : "↓"}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Error Message */}
         {errorMessage ? (
@@ -451,51 +573,67 @@ const index = () => {
         ) : null}
 
         {/* Action Buttons */}
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              styles.depositButton,
-              showDepositInput && styles.actionButtonActive,
-            ]}
-            onPress={handleDepositPress}
-            disabled={isDepositing || isWithdrawing}
-          >
-            {showDepositInput ? (
-              <View style={styles.buttonContent}>
-                <CheckIcon color="#F5F1E8" />
-                <Text style={styles.depositButtonText}>Ok</Text>
-              </View>
-            ) : (
-              <View style={styles.buttonContent}>
-                <ArrowDownIcon color="#F5F1E8" />
-                <Text style={styles.depositButtonText}>Deposit</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+        {isLoading ? (
+          <SkeletonActionButtons />
+        ) : (
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.depositButton,
+                showDepositInput && styles.actionButtonActive,
+                (isDepositing || isWithdrawing) && styles.buttonLoading,
+              ]}
+              onPress={handleDepositPress}
+              disabled={isDepositing || isWithdrawing}
+            >
+              {isDepositing ? (
+                <View style={styles.buttonContent}>
+                  <ActivityIndicator size="small" color="#F5F1E8" />
+                  <Text style={styles.depositButtonText}>Processing...</Text>
+                </View>
+              ) : showDepositInput ? (
+                <View style={styles.buttonContent}>
+                  <CheckIcon color="#F5F1E8" />
+                  <Text style={styles.depositButtonText}>Ok</Text>
+                </View>
+              ) : (
+                <View style={styles.buttonContent}>
+                  <ArrowDownIcon color="#F5F1E8" />
+                  <Text style={styles.depositButtonText}>Deposit</Text>
+                </View>
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              styles.withdrawButton,
-              showWithdrawInput && styles.actionButtonActive,
-            ]}
-            onPress={handleWithdrawPress}
-            disabled={isDepositing || isWithdrawing}
-          >
-            {showWithdrawInput ? (
-              <View style={styles.buttonContent}>
-                <CheckIcon color="#0C1A26" />
-                <Text style={styles.withdrawButtonText}>Ok</Text>
-              </View>
-            ) : (
-              <View style={styles.buttonContent}>
-                <ArrowUpIcon color="#0C1A26" />
-                <Text style={styles.withdrawButtonText}>Withdraw</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.withdrawButton,
+                showWithdrawInput && styles.actionButtonActive,
+                (isDepositing || isWithdrawing) && styles.buttonLoading,
+              ]}
+              onPress={handleWithdrawPress}
+              disabled={isDepositing || isWithdrawing}
+            >
+              {isWithdrawing ? (
+                <View style={styles.buttonContent}>
+                  <ActivityIndicator size="small" color="#0C1A26" />
+                  <Text style={styles.withdrawButtonText}>Processing...</Text>
+                </View>
+              ) : showWithdrawInput ? (
+                <View style={styles.buttonContent}>
+                  <CheckIcon color="#0C1A26" />
+                  <Text style={styles.withdrawButtonText}>Ok</Text>
+                </View>
+              ) : (
+                <View style={styles.buttonContent}>
+                  <ArrowUpIcon color="#0C1A26" />
+                  <Text style={styles.withdrawButtonText}>Withdraw</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Input Field */}
         {(showDepositInput || showWithdrawInput) && (
@@ -506,6 +644,7 @@ const index = () => {
                 showDepositInput && styles.depositInput,
                 showWithdrawInput && styles.withdrawInput,
                 errorMessage && styles.inputError,
+                (isDepositing || isWithdrawing) && styles.inputDisabled,
               ]}
               placeholder="Enter amount"
               placeholderTextColor="#C9B99A80"
@@ -516,10 +655,12 @@ const index = () => {
                 setErrorMessage("");
               }}
               autoFocus
+              editable={!isDepositing && !isWithdrawing}
             />
             <TouchableOpacity
               style={styles.closeButton}
               onPress={handleCloseInput}
+              disabled={isDepositing || isWithdrawing}
             >
               <XIcon />
             </TouchableOpacity>
@@ -527,56 +668,65 @@ const index = () => {
         )}
 
         {/* Recent Activity */}
-        <View style={styles.recentActivityContainer}>
-          <Text style={styles.recentActivityTitle}>Recent Activity</Text>
-          {recentTransactions.length > 0 ? (
-            recentTransactions.map((transaction: any) => (
-              <View key={transaction.id} style={styles.transactionItem}>
-                <View
-                  style={[
-                    styles.transactionIcon,
-                    transaction.type === "deposit"
-                      ? styles.depositIcon
-                      : styles.withdrawIcon,
-                  ]}
-                >
-                  {transaction.type === "deposit" ? (
-                    <ArrowDownIcon color="#2AA7A1" />
-                  ) : (
-                    <ArrowUpIcon color="#D8A75F" />
-                  )}
-                </View>
-                <View style={styles.transactionDetails}>
-                  <Text style={styles.transactionTitle}>
-                    {transaction.type === "deposit"
-                      ? "Deposit"
-                      : transaction.type === "withdraw"
-                      ? "Withdrawal"
-                      : "Transfer"}
+        {isLoading ? (
+          <SkeletonRecentActivity />
+        ) : (
+          <View style={styles.recentActivityContainer}>
+            <View style={styles.recentActivityHeader}>
+              <Text style={styles.recentActivityTitle}>Recent Activity</Text>
+              {(isDepositing || isWithdrawing) && (
+                <ActivityIndicator size="small" color="#D8A75F" />
+              )}
+            </View>
+            {recentTransactions.length > 0 ? (
+              recentTransactions.map((transaction: any) => (
+                <View key={transaction.id} style={styles.transactionItem}>
+                  <View
+                    style={[
+                      styles.transactionIcon,
+                      transaction.type === "deposit"
+                        ? styles.depositIcon
+                        : styles.withdrawIcon,
+                    ]}
+                  >
+                    {transaction.type === "deposit" ? (
+                      <ArrowDownIcon color="#2AA7A1" />
+                    ) : (
+                      <ArrowUpIcon color="#D8A75F" />
+                    )}
+                  </View>
+                  <View style={styles.transactionDetails}>
+                    <Text style={styles.transactionTitle}>
+                      {transaction.type === "deposit"
+                        ? "Deposit"
+                        : transaction.type === "withdraw"
+                        ? "Withdrawal"
+                        : "Transfer"}
+                    </Text>
+                    <Text style={styles.transactionDate}>
+                      {formatDate(transaction.createdAt)}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.transactionAmount,
+                      transaction.type === "deposit"
+                        ? styles.depositAmount
+                        : styles.withdrawAmount,
+                    ]}
+                  >
+                    {transaction.type === "deposit" ? "+" : "-"}
+                    {formatAmount(Math.abs(transaction.amount))}
                   </Text>
-                  <Text style={styles.transactionDate}>
-                    {formatDate(transaction.createdAt)}
-                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.transactionAmount,
-                    transaction.type === "deposit"
-                      ? styles.depositAmount
-                      : styles.withdrawAmount,
-                  ]}
-                >
-                  {transaction.type === "deposit" ? "+" : "-"}
-                  {formatAmount(Math.abs(transaction.amount))}
-                </Text>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noTransactionsText}>
-              No recent transactions
-            </Text>
-          )}
-        </View>
+              ))
+            ) : (
+              <Text style={styles.noTransactionsText}>
+                No recent transactions
+              </Text>
+            )}
+          </View>
+        )}
       </Animated.View>
     </ScrollView>
   );
@@ -633,6 +783,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     position: "relative",
     overflow: "visible",
+  },
+  balanceLoadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(12, 26, 38, 0.7)",
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 20,
   },
   cornerDecorationContainer: {
     position: "absolute",
@@ -719,6 +881,9 @@ const styles = StyleSheet.create({
   actionButtonActive: {
     opacity: 0.9,
   },
+  buttonLoading: {
+    opacity: 0.7,
+  },
   depositButton: {
     backgroundColor: "#2AA7A1",
   },
@@ -765,6 +930,9 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: "#FF3B30",
   },
+  inputDisabled: {
+    opacity: 0.6,
+  },
   closeButton: {
     width: 40,
     height: 40,
@@ -778,11 +946,16 @@ const styles = StyleSheet.create({
   recentActivityContainer: {
     marginTop: 8,
   },
+  recentActivityHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
   recentActivityTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#F5F1E8",
-    marginBottom: 16,
   },
   transactionItem: {
     flexDirection: "row",

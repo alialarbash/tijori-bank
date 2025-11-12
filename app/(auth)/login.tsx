@@ -9,13 +9,20 @@ import {
   Animated,
   ActivityIndicator,
   Dimensions,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import React, { useContext, useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { loginApi } from "../../api/auth";
-import { storeToken, setRememberMe, getRememberMe } from "../../api/storage";
+import {
+  storeToken,
+  setRememberMe,
+  getRememberMe,
+  deleteToken,
+} from "../../api/storage";
 import AuthContext from "../../context/AuthContext";
 import { useRouter } from "expo-router";
 import Svg, { Rect, Circle, Line, Path } from "react-native-svg";
@@ -185,7 +192,7 @@ const login = () => {
         password: formik.values.password,
       }),
     onSuccess: async (data) => {
-      // Always store token for current session
+      // Store token for current session (needed for API calls)
       await storeToken(data.token);
 
       // Update rememberMe preference in storage and context
@@ -259,176 +266,189 @@ const login = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Hero Image Section */}
-      <View style={styles.heroSection}>
-        <Image
-          source={{
-            uri: "https://images.unsplash.com/photo-1650563401244-12028cd7ee4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxLdXdhaXQlMjBoZXJpdGFnZSUyMGFyY2hpdGVjdHVyZXxlbnwxfHx8fDE3NjI3NzI0OTZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-          }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
-        <View style={styles.heroOverlay} />
-      </View>
-
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <SmallVaultIcon />
-          <Text style={styles.logoText}>Tijori</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        {/* Hero Image Section */}
+        <View style={styles.heroSection}>
+          <Image
+            source={{
+              uri: "https://images.unsplash.com/photo-1650563401244-12028cd7ee4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxLdXdhaXQlMjBoZXJpdGFnZSUyMGFyY2hpdGVjdHVyZXxlbnwxfHx8fDE3NjI3NzI0OTZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+            }}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+          <View style={styles.heroOverlay} />
         </View>
-      </View>
 
-      {/* Card Container */}
-      <View style={styles.cardWrapper}>
-        <Animated.View
-          style={[
-            styles.cardContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          <View style={styles.card}>
-            {/* Vault Icon */}
-            <View style={styles.vaultIconContainer}>
-              <VaultIcon size={48} />
-            </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <SmallVaultIcon />
+            <Text style={styles.logoText}>Tijori</Text>
+          </View>
+        </View>
 
-            {/* Welcome Text */}
-            <Text style={styles.welcomeText}>Welcome to Tijori</Text>
-
-            {/* Error Message */}
-            {errorMessage ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </View>
-            ) : null}
-
-            {/* Form */}
-            <View style={styles.form}>
-              {/* Email/Phone Input */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Username</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    formik.touched.username &&
-                      formik.errors.username &&
-                      styles.inputError,
-                    formik.values.username && styles.inputFocused,
-                  ]}
-                  placeholder="Enter your username"
-                  placeholderTextColor="#C9B99A80"
-                  value={formik.values.username}
-                  onChangeText={(text) => {
-                    formik.setFieldValue("username", text);
-                    setErrorMessage("");
-                  }}
-                  onBlur={formik.handleBlur("username")}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                />
+        {/* Card Container */}
+        <View style={styles.cardWrapper}>
+          <Animated.View
+            style={[
+              styles.cardContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <View style={styles.card}>
+              {/* Vault Icon */}
+              <View style={styles.vaultIconContainer}>
+                <VaultIcon size={48} />
               </View>
 
-              {/* Password Input */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Password</Text>
-                <View style={styles.passwordContainer}>
+              {/* Welcome Text */}
+              <Text style={styles.welcomeText}>Welcome to Tijori</Text>
+
+              {/* Error Message */}
+              {errorMessage ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              {/* Form */}
+              <View style={styles.form}>
+                {/* Email/Phone Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Username</Text>
                   <TextInput
                     style={[
                       styles.input,
-                      styles.passwordInput,
-                      formik.touched.password &&
-                        formik.errors.password &&
+                      formik.touched.username &&
+                        formik.errors.username &&
                         styles.inputError,
-                      formik.values.password && styles.inputFocused,
+                      formik.values.username && styles.inputFocused,
                     ]}
-                    placeholder="Enter your password"
+                    placeholder="Enter your username"
                     placeholderTextColor="#C9B99A80"
-                    value={formik.values.password}
+                    value={formik.values.username}
                     onChangeText={(text) => {
-                      formik.setFieldValue("password", text);
+                      formik.setFieldValue("username", text);
                       setErrorMessage("");
                     }}
-                    onBlur={formik.handleBlur("password")}
-                    secureTextEntry={!showPassword}
+                    onBlur={formik.handleBlur("username")}
                     autoCapitalize="none"
+                    keyboardType="email-address"
                   />
+                </View>
+
+                {/* Password Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Password</Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        styles.passwordInput,
+                        formik.touched.password &&
+                          formik.errors.password &&
+                          styles.inputError,
+                        formik.values.password && styles.inputFocused,
+                      ]}
+                      placeholder="Enter your password"
+                      placeholderTextColor="#C9B99A80"
+                      value={formik.values.password}
+                      onChangeText={(text) => {
+                        formik.setFieldValue("password", text);
+                        setErrorMessage("");
+                      }}
+                      onBlur={formik.handleBlur("password")}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeButtonContainer}
+                      activeOpacity={0.7}
+                    >
+                      <EyeIcon visible={showPassword} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Remember Me */}
+                <View style={styles.rememberMeContainer}>
                   <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeButtonContainer}
-                    activeOpacity={0.7}
+                    onPress={async () => {
+                      const newValue = !rememberMe;
+                      setRememberMe(newValue);
+                      // Update context immediately
+                      setRememberMeContext(newValue);
+                      // Update storage immediately
+                      await setRememberMe(newValue);
+                      // If unchecking rememberMe, clear the token
+                      if (!newValue) {
+                        await deleteToken();
+                      }
+                    }}
+                    style={styles.checkboxContainer}
                   >
-                    <EyeIcon visible={showPassword} />
+                    <View
+                      style={[
+                        styles.checkbox,
+                        rememberMe && styles.checkboxChecked,
+                      ]}
+                    >
+                      {rememberMe && (
+                        <View style={styles.checkmark}>
+                          <Text style={styles.checkmarkText}>✓</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.rememberMeText}>Remember me</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
 
-              {/* Remember Me */}
-              <View style={styles.rememberMeContainer}>
-                <TouchableOpacity
-                  onPress={() => setRememberMe(!rememberMe)}
-                  style={styles.checkboxContainer}
-                >
-                  <View
+                {/* Sign In Button */}
+                <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                  <TouchableOpacity
                     style={[
-                      styles.checkbox,
-                      rememberMe && styles.checkboxChecked,
+                      styles.signInButton,
+                      isPending && styles.signInButtonDisabled,
                     ]}
+                    onPress={handleSubmit}
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    disabled={isPending}
                   >
-                    {rememberMe && (
-                      <View style={styles.checkmark}>
-                        <Text style={styles.checkmarkText}>✓</Text>
-                      </View>
+                    {isPending ? (
+                      <ActivityIndicator color="#0C1A26" />
+                    ) : (
+                      <Text style={styles.signInButtonText}>Sign In</Text>
                     )}
-                  </View>
-                  <Text style={styles.rememberMeText}>Remember me</Text>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
-
-              {/* Sign In Button */}
-              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                <TouchableOpacity
-                  style={[
-                    styles.signInButton,
-                    isPending && styles.signInButtonDisabled,
-                  ]}
-                  onPress={handleSubmit}
-                  onPressIn={handlePressIn}
-                  onPressOut={handlePressOut}
-                  disabled={isPending}
-                >
-                  {isPending ? (
-                    <ActivityIndicator color="#0C1A26" />
-                  ) : (
-                    <Text style={styles.signInButtonText}>Sign In</Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
             </View>
-          </View>
-        </Animated.View>
-      </View>
+          </Animated.View>
+        </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          New to Tijori?{" "}
-          <Text
-            style={styles.footerLink}
-            onPress={() => router.push("/register")}
-          >
-            Create account
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            New to Tijori?{" "}
+            <Text
+              style={styles.footerLink}
+              onPress={() => router.push("/register")}
+            >
+              Create account
+            </Text>
           </Text>
-        </Text>
-        <Text style={styles.securityText}>
-          Protected by enterprise-grade security
-        </Text>
+          <Text style={styles.securityText}>
+            Protected by enterprise-grade security
+          </Text>
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
