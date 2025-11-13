@@ -60,12 +60,8 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#0C1A26"
-        translucent={false}
-      />
-      <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" translucent={false} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#0C1A26" }}>
         <QueryClientProvider client={queryClient}>
           <AuthContext.Provider
             value={{
