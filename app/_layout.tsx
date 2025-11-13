@@ -61,7 +61,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar
-        barStyle="light-content"
+        barStyle="dark-content"
         backgroundColor="#0C1A26"
         translucent={false}
       />

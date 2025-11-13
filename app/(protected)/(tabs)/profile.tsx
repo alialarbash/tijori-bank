@@ -209,7 +209,7 @@ const profile = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#D8A75F" />
       </View>
     );
@@ -326,6 +326,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0C1A26",
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#0C1A26",
+    justifyContent: "center",
+    alignItems: "center",
   },
   contentContainer: {
     paddingBottom: 100,

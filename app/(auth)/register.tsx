@@ -212,7 +212,8 @@ const register = () => {
 
         // Small delay to ensure state is updated before navigation
         setTimeout(() => {
-          router.replace("/");
+          // Navigate to video intro first, then it will redirect to home
+          router.replace("/(protected)/video-intro");
         }, 100);
       } catch (error) {
         console.error("Error in onSuccess:", error);

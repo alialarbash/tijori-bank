@@ -42,4 +42,30 @@ const setRememberMe = async (value: boolean) => {
   }
 };
 
-export { storeToken, getToken, deleteToken, getRememberMe, setRememberMe };
+const getVideoShown = async () => {
+  try {
+    const value = await AsyncStorage.getItem("videoShown");
+    return value === "true";
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+const setVideoShown = async (value: boolean) => {
+  try {
+    await AsyncStorage.setItem("videoShown", value.toString());
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export {
+  storeToken,
+  getToken,
+  deleteToken,
+  getRememberMe,
+  setRememberMe,
+  getVideoShown,
+  setVideoShown,
+};

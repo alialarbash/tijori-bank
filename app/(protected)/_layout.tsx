@@ -11,6 +11,10 @@ const ProtextedLayout = () => {
   }
   return (
     <Stack>
+      <Stack.Screen
+        name="video-intro"
+        options={{ headerShown: false, presentation: "fullScreenModal" }}
+      />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   );

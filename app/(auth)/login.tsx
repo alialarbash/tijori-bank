@@ -200,7 +200,8 @@ const login = () => {
       setRememberMeContext(rememberMe); // Update context state
 
       setIsAuthenticated(true);
-      router.push("/");
+      // Navigate to video intro first, then it will redirect to home
+      router.replace("/(protected)/video-intro");
     },
     onError: (error: any) => {
       console.log(error);
