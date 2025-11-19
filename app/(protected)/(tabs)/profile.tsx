@@ -13,7 +13,7 @@ import AuthContext from "../../../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { me, updateUser } from "../../../api/auth";
 import * as ImagePicker from "expo-image-picker";
-import { deleteToken } from "../../../api/storage";
+import { deleteToken, setRememberMe } from "../../../api/storage";
 import { useRouter } from "expo-router";
 import Svg, { Path, Circle, Line } from "react-native-svg";
 
@@ -94,6 +94,7 @@ const profile = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setIsAuthenticated } = useContext(AuthContext);
+  const { setRememberMe: setRememberMeContext } = useContext(AuthContext);
   const { data, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: me,
@@ -190,9 +191,11 @@ const profile = () => {
     }
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     deleteToken();
     setIsAuthenticated(false);
+    setRememberMeContext(false);
+    await setRememberMe(false);
     router.replace("/(auth)/login");
   };
 

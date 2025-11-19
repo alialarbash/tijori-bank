@@ -158,7 +158,7 @@ const EyeIcon = ({ visible }: { visible: boolean }) => (
 );
 
 const loginSchema = Yup.object().shape({
-  username: Yup.string().required("Email or phone is required"),
+  username: Yup.string().required("Username is required"),
   password: Yup.string().required("Password is required"),
 });
 
@@ -258,7 +258,7 @@ const login = () => {
         mutate();
       } else {
         if (!formik.values.username) {
-          setErrorMessage("Email or phone is required");
+          setErrorMessage("Username is required");
         } else if (!formik.values.password) {
           setErrorMessage("Password is required");
         }
@@ -318,7 +318,7 @@ const login = () => {
 
               {/* Form */}
               <View style={styles.form}>
-                {/* Email/Phone Input */}
+                {/* Username Input */}
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Username</Text>
                   <TextInput
@@ -419,6 +419,7 @@ const login = () => {
                     onPressIn={handlePressIn}
                     onPressOut={handlePressOut}
                     disabled={isPending}
+                    activeOpacity={0.7}
                   >
                     {isPending ? (
                       <ActivityIndicator color="#0C1A26" />
